@@ -16,21 +16,24 @@
   <meta name="author" content="fkxia">
   <meta name="keywords" content="">
   
-    <meta name="description" content="Welcome to Hexo! This is your very first post. Check documentation for more info. If you get any problems when using Hexo, you can find the answer in troubleshooting or you can ask me on GitHub. Quick">
+    <meta name="description" content="Linux CRON">
 <meta property="og:type" content="article">
-<meta property="og:title" content="Hello World">
-<meta property="og:url" content="http://example.com/2022/08/07/hello-world/index.html">
+<meta property="og:title" content="Cron定时任务">
+<meta property="og:url" content="http://example.com/2022/08/14/cron%E5%AE%9A%E6%97%B6%E4%BB%BB%E5%8A%A1/index.html">
 <meta property="og:site_name" content="fkxia">
-<meta property="og:description" content="Welcome to Hexo! This is your very first post. Check documentation for more info. If you get any problems when using Hexo, you can find the answer in troubleshooting or you can ask me on GitHub. Quick">
+<meta property="og:description" content="Linux CRON">
 <meta property="og:locale" content="zh_CN">
-<meta property="article:published_time" content="2022-08-07T04:14:35.403Z">
-<meta property="article:modified_time" content="2022-08-07T04:13:36.830Z">
+<meta property="og:image" content="http://example.com/img/articleIntrImg/OIP-C.png">
+<meta property="article:published_time" content="2022-08-14T13:45:38.000Z">
+<meta property="article:modified_time" content="2022-09-18T13:58:43.137Z">
 <meta property="article:author" content="fkxia">
+<meta property="article:tag" content="定时任务">
 <meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:image" content="http://example.com/img/articleIntrImg/OIP-C.png">
   
   
   
-  <title>Hello World - fkxia</title>
+  <title>Cron定时任务 - fkxia</title>
 
   <link  rel="stylesheet" href="https://lib.baomitu.com/twitter-bootstrap/4.6.1/css/bootstrap.min.css" />
 
@@ -224,7 +227,7 @@
       <div class="banner-text text-center fade-in-up">
         <div class="h2">
           
-            <span id="subtitle" data-typed-text="Hello World"></span>
+            <span id="subtitle" data-typed-text="Cron定时任务"></span>
           
         </div>
 
@@ -235,8 +238,8 @@
     
       <span class="post-meta">
         <i class="iconfont icon-date-fill" aria-hidden="true"></i>
-        <time datetime="2022-08-07 12:14" pubdate>
-          2022年8月7日 中午
+        <time datetime="2022-08-14 21:45" pubdate>
+          2022年8月14日 晚上
         </time>
       </span>
     
@@ -247,7 +250,7 @@
       <span class="post-meta mr-2">
         <i class="iconfont icon-chart"></i>
         
-          undefined 字
+          2k 字
         
       </span>
     
@@ -258,7 +261,7 @@
         
         
         
-          NaN 分钟
+          13 分钟
         
       </span>
     
@@ -304,24 +307,56 @@
         <div id="board">
           <article class="post-content mx-auto">
             <!-- SEO header -->
-            <h1 style="display: none">Hello World</h1>
+            <h1 style="display: none">Cron定时任务</h1>
             
             
               <div class="markdown-body">
                 
-                <p>Welcome to <a target="_blank" rel="noopener" href="https://hexo.io/">Hexo</a>! This is your very first post. Check <a target="_blank" rel="noopener" href="https://hexo.io/docs/">documentation</a> for more info. If you get any problems when using Hexo, you can find the answer in <a target="_blank" rel="noopener" href="https://hexo.io/docs/troubleshooting.html">troubleshooting</a> or you can ask me on <a target="_blank" rel="noopener" href="https://github.com/hexojs/hexo/issues">GitHub</a>.</p>
-<h2 id="Quick-Start"><a href="#Quick-Start" class="headerlink" title="Quick Start"></a>Quick Start</h2><h3 id="Create-a-new-post"><a href="#Create-a-new-post" class="headerlink" title="Create a new post"></a>Create a new post</h3><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ hexo new <span class="string">&quot;My New Post&quot;</span></span><br></pre></td></tr></table></figure>
+                <h2 id="定时任务"><a href="#定时任务" class="headerlink" title="定时任务"></a>定时任务</h2><blockquote>
+<p>本例为 CentOS 7 系统</p>
+</blockquote>
+<h3 id="系统定时执行目录执行时间"><a href="#系统定时执行目录执行时间" class="headerlink" title="系统定时执行目录执行时间"></a>系统定时执行目录执行时间</h3><p>/etc/anacrontab</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br></pre></td><td class="code"><pre><code class="hljs shell"><span class="hljs-meta prompt_"># </span><span class="language-bash">/etc/anacrontab: configuration file <span class="hljs-keyword">for</span> anacron</span><br><span class="hljs-meta prompt_"></span><br><span class="hljs-meta prompt_"># </span><span class="language-bash">See anacron(8) and anacrontab(5) <span class="hljs-keyword">for</span> details.</span><br><br>SHELL=/bin/sh<br>PATH=/sbin:/bin:/usr/sbin:/usr/bin<br>MAILTO=root<br><span class="hljs-meta prompt_"># </span><span class="language-bash">the maximal random delay added to the base delay of the <span class="hljs-built_in">jobs</span></span><br>RANDOM_DELAY=45<br><span class="hljs-meta prompt_"># </span><span class="language-bash">the <span class="hljs-built_in">jobs</span> will be started during the following hours only</span><br>START_HOURS_RANGE=3-22<br><span class="hljs-meta prompt_"></span><br><span class="hljs-meta prompt_">#</span><span class="language-bash">period <span class="hljs-keyword">in</span> days   delay <span class="hljs-keyword">in</span> minutes   job-identifier   <span class="hljs-built_in">command</span></span><br>1       5       cron.daily              nice run-parts /etc/cron.daily<br>7       25      cron.weekly             nice run-parts /etc/cron.weekly<br>@monthly 45     cron.monthly            nice run-parts /etc/cron.monthly<br></code></pre></td></tr></table></figure>
 
-<p>More info: <a target="_blank" rel="noopener" href="https://hexo.io/docs/writing.html">Writing</a></p>
-<h3 id="Run-server"><a href="#Run-server" class="headerlink" title="Run server"></a>Run server</h3><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ hexo server</span><br></pre></td></tr></table></figure>
+<p>在这个文件中，“RANDOM_DELAY” 定义的是最大随机延迟，也就是说，cron.daily 工作如果超过 1 天没有执行，则并不会马上执行，而是先延迟强制延迟时间，再延迟随机延迟时间，之后再执行命令；“START_HOURS_RANGE” 的是定义 anacron 执行时间范围，anacron 只会在这个时间范围内执行。delay in minutes 表示强制延迟。</p>
+<p>对于 cron.hourly，进入 /etc/cron.d/0hourly 中查看：</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><code class="hljs shell"><span class="hljs-meta prompt_"># </span><span class="language-bash">Run the hourly <span class="hljs-built_in">jobs</span></span><br>SHELL=/bin/bash<br>PATH=/sbin:/bin:/usr/sbin:/usr/bin<br>MAILTO=root<br>01 * * * * root run-parts /etc/cron.hourly<br></code></pre></td></tr></table></figure>
 
-<p>More info: <a target="_blank" rel="noopener" href="https://hexo.io/docs/server.html">Server</a></p>
-<h3 id="Generate-static-files"><a href="#Generate-static-files" class="headerlink" title="Generate static files"></a>Generate static files</h3><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ hexo generate</span><br></pre></td></tr></table></figure>
+<p>所以，首先 cron.hourly 里的脚本是每小时第 1 分钟执行；</p>
+<p>crond 会检查 /etc/cron.d 里面的配置，里面有一个 0hourly 文件，每小时去运行一次 /etc/cron.hourly 目录，该目录下面有一个 0anacron 文件，这样 0anacron 文件就能每小时运行一次，这里其实执行的是 /usr/sbin/anacron -s 。anacron 读取配置文件 /etc/anacrontab，将当前时间与 /var/spool/anacron 目录下面的文件里面的时间戳作对比，如果需要则去运行 /etc/anacrontab 对应的条目。</p>
+<p>参考：</p>
+<p><a target="_blank" rel="noopener" href="https://www.sidney-tan.com/linuxuse/474.html">https://www.sidney-tan.com/linuxuse/474.html</a></p>
+<p><a target="_blank" rel="noopener" href="https://www.wake-up-neo.net/zh/linux/%60crondaily%60%E4%BB%80%E4%B9%88%E6%97%B6%E5%80%99%E8%BF%90%E8%A1%8C%EF%BC%9F/958769610/">https://www.wake-up-neo.net/zh/linux/%60crondaily%60%E4%BB%80%E4%B9%88%E6%97%B6%E5%80%99%E8%BF%90%E8%A1%8C%EF%BC%9F/958769610/</a></p>
+<p><a target="_blank" rel="noopener" href="https://xz.aliyun.com/t/1079">https://xz.aliyun.com/t/1079</a></p>
+<h3 id="脚本放在-etc-cron-daily-中不执行的原因"><a href="#脚本放在-etc-cron-daily-中不执行的原因" class="headerlink" title="脚本放在 /etc/cron.daily 中不执行的原因"></a>脚本放在 /etc/cron.daily 中不执行的原因</h3><p>脚本要有执行权限：</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><code class="hljs shell">chmod + x filename<br></code></pre></td></tr></table></figure>
 
-<p>More info: <a target="_blank" rel="noopener" href="https://hexo.io/docs/generating.html">Generating</a></p>
-<h3 id="Deploy-to-remote-sites"><a href="#Deploy-to-remote-sites" class="headerlink" title="Deploy to remote sites"></a>Deploy to remote sites</h3><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ hexo deploy</span><br></pre></td></tr></table></figure>
+<p>如：chmod 755 delete-log</p>
+<h3 id="测试方法"><a href="#测试方法" class="headerlink" title="测试方法"></a>测试方法</h3><blockquote>
+<p>定时任务写完后，需要验证一下有没有达到你想要的效果</p>
+</blockquote>
+<p>编辑脚本文件放在指定目录，这里先放在 cron.daily、cron.hourly 等目录下，方便修改好直接适配需求。</p>
+<p>可以先手动 run-parts 脚本所在目录，run-parts /etc/cron.daily，然后</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><code class="hljs shell">tail -f /var/log/cron<br></code></pre></td></tr></table></figure>
 
-<p>More info: <a target="_blank" rel="noopener" href="https://hexo.io/docs/one-command-deployment.html">Deployment</a></p>
+<p>查看日志中是否有对应脚本文件执行的记录。</p>
+<p>有正常执行的记录，就可以测定时任务是否有效了，按道理来说有两种方法测试：</p>
+<ol>
+<li><p>编辑 cron 配置文件（作业列表），</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><code class="hljs shell">crontab -e<br></code></pre></td></tr></table></figure>
+
+<p>按自己需要的时间 <code>run-parts</code> 脚本所在目录，如：</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><code class="hljs shell"><span class="hljs-meta prompt_"># </span><span class="language-bash">每天14点47分执行cron.daily内的脚本</span><br>47 14 * * * root run-parts /etc/cron.daily<br></code></pre></td></tr></table></figure>
+
+<p>更多可参考：<a target="_blank" rel="noopener" href="https://www.jianshu.com/p/838db0269fd0">https://www.jianshu.com/p/838db0269fd0</a></p>
+</li>
+<li><p>修改控制目录下脚本执行时间的文件 /etc/anacrontab：</p>
+<p>修改 START_HOURS_RANGE，delay in minutes 和 RANDOM_DELAY 为自己需要的时间，进行测试。</p>
+<p>但不推荐改动系统设置。</p>
+</li>
+</ol>
+<h3 id="grep-命令多条件查询"><a href="#grep-命令多条件查询" class="headerlink" title="grep 命令多条件查询"></a>grep 命令多条件查询</h3><p><a target="_blank" rel="noopener" href="https://www.codeleading.com/article/97822101577/">https://www.codeleading.com/article/97822101577/</a></p>
+<h3 id="特殊处理"><a href="#特殊处理" class="headerlink" title="特殊处理"></a>特殊处理</h3><p>自定义定时执行任务时，排查完各种问题，如文件执行权限，命令书写，执行时间检查等，<code>crontab -e</code> 中写的定时任务依然不生效，可在 /etc/crontab 中测试定时任务。</p>
 
                 
               </div>
@@ -330,6 +365,34 @@
             <div>
               <div class="post-metas my-3">
   
+    <div class="post-meta mr-3 d-flex align-items-center">
+      <i class="iconfont icon-category"></i>
+      
+
+<span class="category-chains">
+  
+  
+    
+      <span class="category-chain">
+        
+  <a href="/categories/Linux/" class="category-chain-item">Linux</a>
+  
+  
+
+      </span>
+    
+  
+</span>
+
+    </div>
+  
+  
+    <div class="post-meta">
+      <i class="iconfont icon-tags"></i>
+      
+        <a href="/tags/%E5%AE%9A%E6%97%B6%E4%BB%BB%E5%8A%A1/">#定时任务</a>
+      
+    </div>
   
 </div>
 
@@ -339,8 +402,8 @@
 
   <div class="license-box my-3">
     <div class="license-title">
-      <div>Hello World</div>
-      <div>http://example.com/2022/08/07/hello-world/</div>
+      <div>Cron定时任务</div>
+      <div>http://example.com/2022/08/14/cron定时任务/</div>
     </div>
     <div class="license-meta">
       
@@ -352,7 +415,7 @@
       
         <div class="license-meta-item license-meta-date">
           <div>发布于</div>
-          <div>2022年8月7日</div>
+          <div>2022年8月14日</div>
         </div>
       
       
@@ -382,15 +445,21 @@
                   <article class="post-prev col-6">
                     
                     
-                      <a href="/2022/08/07/readme/" title="readme">
+                      <a href="/2022/08/21/hashmap/" title="HashMap">
                         <i class="iconfont icon-arrowleft"></i>
-                        <span class="hidden-mobile">readme</span>
+                        <span class="hidden-mobile">HashMap</span>
                         <span class="visible-mobile">上一篇</span>
                       </a>
                     
                   </article>
                   <article class="post-next col-6">
                     
+                    
+                      <a href="/2022/08/07/%E5%8D%95%E4%BE%8B%E6%A8%A1%E5%BC%8F/" title="单例模式">
+                        <span class="hidden-mobile">单例模式</span>
+                        <span class="visible-mobile">下一篇</span>
+                        <i class="iconfont icon-arrowright"></i>
+                      </a>
                     
                   </article>
                 </div>

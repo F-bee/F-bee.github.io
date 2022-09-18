@@ -1,0 +1,723 @@
+
+
+<!DOCTYPE html>
+<html lang="zh-CN" data-default-color-scheme=auto>
+
+
+
+<head>
+  <meta charset="UTF-8">
+  <link rel="apple-touch-icon" sizes="76x76" href="/img/fluid.png">
+  <link rel="icon" href="/img/bee.png">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, shrink-to-fit=no">
+  <meta http-equiv="x-ua-compatible" content="ie=edge">
+  
+  <meta name="theme-color" content="#2f4154">
+  <meta name="author" content="fkxia">
+  <meta name="keywords" content="">
+  
+    <meta name="description" content="基于配置类加载&amp;基于注解加载">
+<meta property="og:type" content="article">
+<meta property="og:title" content="简单自定义实现IoC">
+<meta property="og:url" content="http://example.com/2022/08/28/%E8%87%AA%E5%AE%9A%E4%B9%89IoC/index.html">
+<meta property="og:site_name" content="fkxia">
+<meta property="og:description" content="基于配置类加载&amp;基于注解加载">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="http://example.com/img/articleIntrImg/spring.webp">
+<meta property="article:published_time" content="2022-08-28T11:17:41.000Z">
+<meta property="article:modified_time" content="2022-09-18T15:25:08.036Z">
+<meta property="article:author" content="fkxia">
+<meta property="article:tag" content="Spring">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:image" content="http://example.com/img/articleIntrImg/spring.webp">
+  
+  
+  
+  <title>简单自定义实现IoC - fkxia</title>
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/twitter-bootstrap/4.6.1/css/bootstrap.min.css" />
+
+
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/github-markdown-css/4.0.0/github-markdown.min.css" />
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/hint.css/2.7.0/hint.min.css" />
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/fancybox/3.5.7/jquery.fancybox.min.css" />
+
+
+
+<!-- 主题依赖的图标库，不要自行修改 -->
+<!-- Do not modify the link that theme dependent icons -->
+
+<link rel="stylesheet" href="//at.alicdn.com/t/font_1749284_hj8rtnfg7um.css">
+
+
+
+<link rel="stylesheet" href="//at.alicdn.com/t/font_1736178_lbnruvf0jn.css">
+
+
+<link  rel="stylesheet" href="/css/main.css" />
+
+
+  <link id="highlight-css" rel="stylesheet" href="/css/highlight.css" />
+  
+    <link id="highlight-css-dark" rel="stylesheet" href="/css/highlight-dark.css" />
+  
+
+
+
+
+  <script id="fluid-configs">
+    var Fluid = window.Fluid || {};
+    Fluid.ctx = Object.assign({}, Fluid.ctx)
+    var CONFIG = {"hostname":"example.com","root":"/","version":"1.9.2","typing":{"enable":true,"typeSpeed":70,"cursorChar":"_","loop":false,"scope":[]},"anchorjs":{"enable":true,"element":"h1,h2,h3,h4,h5,h6","placement":"left","visible":"hover","icon":""},"progressbar":{"enable":true,"height_px":3,"color":"#29d","options":{"showSpinner":false,"trickleSpeed":100}},"code_language":{"enable":true,"default":"TEXT"},"copy_btn":true,"image_caption":{"enable":true},"image_zoom":{"enable":true,"img_url_replace":["",""]},"toc":{"enable":true,"placement":"right","headingSelector":"h1,h2,h3,h4,h5,h6","collapseDepth":0},"lazyload":{"enable":true,"loading_img":"/img/loading.gif","onlypost":false,"offset_factor":2},"web_analytics":{"enable":true,"follow_dnt":true,"baidu":null,"google":null,"gtag":null,"tencent":{"sid":null,"cid":null},"woyaola":null,"cnzz":null,"leancloud":{"app_id":"fydHwpWf8lLoh5rB94P1h8ol-9Nh9j0Va","app_key":"x2r3bVLhBEER5npVNdOJbvQH","server_url":"https://fydhwpwf.lc-cn-e1-shared.com","path":"window.location.pathname","ignore_local":false}},"search_path":"/local-search.xml"};
+
+    if (CONFIG.web_analytics.follow_dnt) {
+      var dntVal = navigator.doNotTrack || window.doNotTrack || navigator.msDoNotTrack;
+      Fluid.ctx.dnt = dntVal && (dntVal.startsWith('1') || dntVal.startsWith('yes') || dntVal.startsWith('on'));
+    }
+  </script>
+  <script  src="/js/utils.js" ></script>
+  <script  src="/js/color-schema.js" ></script>
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+    
+  
+
+
+
+  
+<meta name="generator" content="Hexo 5.4.2"></head>
+
+
+<body>
+  
+
+  <header>
+    
+
+<div class="header-inner" style="height: 70vh;">
+  <nav id="navbar" class="navbar fixed-top  navbar-expand-lg navbar-dark scrolling-navbar">
+  <div class="container">
+    <a class="navbar-brand" href="/">
+      <strong>F-bee/kk</strong>
+    </a>
+
+    <button id="navbar-toggler-btn" class="navbar-toggler" type="button" data-toggle="collapse"
+            data-target="#navbarSupportedContent"
+            aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+      <div class="animated-icon"><span></span><span></span><span></span></div>
+    </button>
+
+    <!-- Collapsible content -->
+    <div class="collapse navbar-collapse" id="navbarSupportedContent">
+      <ul class="navbar-nav ml-auto text-center">
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/">
+                <i class="iconfont icon-home-fill"></i>
+                首页
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/archives/">
+                <i class="iconfont icon-archive-fill"></i>
+                归档
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/categories/">
+                <i class="iconfont icon-category-fill"></i>
+                分类
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/tags/">
+                <i class="iconfont icon-tags-fill"></i>
+                标签
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/about/">
+                <i class="iconfont icon-user-fill"></i>
+                关于
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/links/">
+                <i class="iconfont icon-link-fill"></i>
+                友链
+              </a>
+            </li>
+          
+        
+        
+          <li class="nav-item" id="search-btn">
+            <a class="nav-link" target="_self" href="javascript:;" data-toggle="modal" data-target="#modalSearch" aria-label="Search">
+              &nbsp;<i class="iconfont icon-search"></i>&nbsp;
+            </a>
+          </li>
+          
+        
+        
+          <li class="nav-item" id="color-toggle-btn">
+            <a class="nav-link" target="_self" href="javascript:;" aria-label="Color Toggle">&nbsp;<i
+                class="iconfont icon-dark" id="color-toggle-icon"></i>&nbsp;</a>
+          </li>
+        
+      </ul>
+    </div>
+  </div>
+</nav>
+
+  
+
+<div id="banner" class="banner" parallax=true
+     style="background: url('/img/article01.png') no-repeat center center; background-size: cover;">
+  <div class="full-bg-img">
+    <div class="mask flex-center" style="background-color: rgba(0, 0, 0, 0.3)">
+      <div class="banner-text text-center fade-in-up">
+        <div class="h2">
+          
+            <span id="subtitle" data-typed-text="简单自定义实现IoC"></span>
+          
+        </div>
+
+        
+          
+  <div class="mt-3">
+    
+    
+      <span class="post-meta">
+        <i class="iconfont icon-date-fill" aria-hidden="true"></i>
+        <time datetime="2022-08-28 19:17" pubdate>
+          2022年8月28日 晚上
+        </time>
+      </span>
+    
+  </div>
+
+  <div class="mt-1">
+    
+      <span class="post-meta mr-2">
+        <i class="iconfont icon-chart"></i>
+        
+          8.4k 字
+        
+      </span>
+    
+
+    
+      <span class="post-meta mr-2">
+        <i class="iconfont icon-clock-fill"></i>
+        
+        
+        
+          53 分钟
+        
+      </span>
+    
+
+    
+    
+      
+        <span id="leancloud-page-views-container" class="post-meta" style="display: none">
+          <i class="iconfont icon-eye" aria-hidden="true"></i>
+          <span id="leancloud-page-views"></span> 次
+        </span>
+        
+      
+    
+  </div>
+
+
+        
+      </div>
+
+      
+    </div>
+  </div>
+</div>
+
+</div>
+
+  </header>
+
+  <main>
+    
+      
+
+<div class="container-fluid nopadding-x">
+  <div class="row nomargin-x">
+    <div class="side-col d-none d-lg-block col-lg-2">
+      
+
+    </div>
+
+    <div class="col-lg-8 nopadding-x-md">
+      <div class="container nopadding-x-md" id="board-ctn">
+        <div id="board">
+          <article class="post-content mx-auto">
+            <!-- SEO header -->
+            <h1 style="display: none">简单自定义实现IoC</h1>
+            
+            
+              <div class="markdown-body">
+                
+                <h2 id="自定义-IoC"><a href="#自定义-IoC" class="headerlink" title="自定义 IoC"></a>自定义 IoC</h2><h3 id="基于配置类加载"><a href="#基于配置类加载" class="headerlink" title="基于配置类加载"></a>基于配置类加载</h3><p>基于反射机制实现</p>
+<p>MyAnnotationConfigApplicationContext</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-keyword">package</span> com.kk.ioc;<br><br><span class="hljs-keyword">import</span> org.springframework.context.annotation.Bean;<br><span class="hljs-keyword">import</span> org.springframework.context.annotation.Configuration;<br><br><span class="hljs-keyword">import</span> java.lang.annotation.Annotation;<br><span class="hljs-keyword">import</span> java.lang.reflect.InvocationTargetException;<br><span class="hljs-keyword">import</span> java.lang.reflect.Method;<br><span class="hljs-keyword">import</span> java.util.HashMap;<br><span class="hljs-keyword">import</span> java.util.Map;<br><br><span class="hljs-keyword">public</span> <span class="hljs-keyword">class</span> <span class="hljs-title class_">MyAnnotationConfigApplicationContext</span> &#123;<br><br>    <span class="hljs-keyword">private</span> Map&lt;String, Object&gt; ioc = <span class="hljs-keyword">new</span> <span class="hljs-title class_">HashMap</span>&lt;&gt;();<br><br>    <span class="hljs-keyword">public</span> <span class="hljs-title function_">MyAnnotationConfigApplicationContext</span><span class="hljs-params">(Class clazz)</span> &#123;<br>        <span class="hljs-comment">// 判断目标类是否是一个配置类（看其是否有@Configuration注解）</span><br>        <span class="hljs-type">Annotation</span> <span class="hljs-variable">annotation</span> <span class="hljs-operator">=</span> clazz.getAnnotation(Configuration.class);<br>        <span class="hljs-keyword">if</span> (annotation == <span class="hljs-literal">null</span>) &#123;<br>            <span class="hljs-keyword">throw</span> <span class="hljs-keyword">new</span> <span class="hljs-title class_">RuntimeException</span>(clazz.getName() + <span class="hljs-string">&quot;不是一个配置类&quot;</span>);<br>        &#125;<br><span class="hljs-comment">//        System.out.println(annotation);</span><br>        <span class="hljs-comment">//获取配置类中的方法</span><br>        Method[] declaredMethods = clazz.getDeclaredMethods();<br>        Bean annotation1;<br>        <span class="hljs-keyword">for</span> (Method declaredMethod : declaredMethods) &#123; <span class="hljs-comment">// 遍历需要注入的方法（标注了@bean的方法）</span><br>            annotation1 = declaredMethod.getAnnotation(Bean.class);<br>            <span class="hljs-keyword">if</span> (annotation1 != <span class="hljs-literal">null</span>) &#123;<br>                <span class="hljs-keyword">try</span> &#123;<br>                    <span class="hljs-comment">// 获取目标方法返回值（调用方法）</span><br>                    <span class="hljs-type">Object</span> <span class="hljs-variable">invoke</span> <span class="hljs-operator">=</span> declaredMethod.invoke(clazz.getConstructor(<span class="hljs-literal">null</span>).newInstance(), <span class="hljs-literal">null</span>);<br>                    <span class="hljs-comment">// 把对象注入到IoC</span><br>                    String[] value = annotation1.value();<br>                    String key;<br>                    <span class="hljs-keyword">if</span>(value.length == <span class="hljs-number">0</span>) &#123; <span class="hljs-comment">// @bean中没有指定value</span><br>                        <span class="hljs-comment">// 把目标方法的方法名作为key</span><br>                        key = declaredMethod.getName();<br>                    &#125; <span class="hljs-keyword">else</span> &#123;<br>                        <span class="hljs-comment">// @bean注解中的value值作为key</span><br>                        key = value[<span class="hljs-number">0</span>];<br>                    &#125;<br>                    ioc.put(key, invoke);<br>                &#125; <span class="hljs-keyword">catch</span> (IllegalAccessException | NoSuchMethodException | InstantiationException |<br>                         InvocationTargetException e) &#123;<br>                    <span class="hljs-keyword">throw</span> <span class="hljs-keyword">new</span> <span class="hljs-title class_">RuntimeException</span>(e);<br>                &#125;<br>            &#125;<br>        &#125;<br>    &#125;<br><br>    <span class="hljs-keyword">public</span> Object <span class="hljs-title function_">getBean</span><span class="hljs-params">(String name)</span> &#123;<br>        <span class="hljs-type">Object</span> <span class="hljs-variable">o</span> <span class="hljs-operator">=</span> ioc.get(name);<br>        <span class="hljs-keyword">if</span> (o == <span class="hljs-literal">null</span>) &#123;<br>            <span class="hljs-keyword">throw</span> <span class="hljs-keyword">new</span> <span class="hljs-title class_">RuntimeException</span>(<span class="hljs-string">&quot;NoSuchBeanException&quot;</span>);<br>        &#125;<br>        <span class="hljs-keyword">return</span> o;<br>    &#125;<br>&#125;<br></code></pre></td></tr></table></figure>
+
+<h3 id="基于注解加载"><a href="#基于注解加载" class="headerlink" title="基于注解加载"></a>基于注解加载</h3><ol>
+<li>传入覆盖着目标类的目标包；</li>
+<li>目标类要添加相应注解。</li>
+</ol>
+<p>MyAnnotationApplicationContext</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-keyword">package</span> com.kk.ioc;<br><br><span class="hljs-keyword">import</span> com.kk.utils.MyTools;<br><span class="hljs-keyword">import</span> org.springframework.beans.factory.annotation.Value;<br><span class="hljs-keyword">import</span> org.springframework.stereotype.Component;<br><br><span class="hljs-keyword">import</span> java.lang.reflect.Constructor;<br><span class="hljs-keyword">import</span> java.lang.reflect.Field;<br><span class="hljs-keyword">import</span> java.lang.reflect.Method;<br><span class="hljs-keyword">import</span> java.util.HashMap;<br><span class="hljs-keyword">import</span> java.util.Iterator;<br><span class="hljs-keyword">import</span> java.util.Map;<br><span class="hljs-keyword">import</span> java.util.Set;<br><br><span class="hljs-keyword">public</span> <span class="hljs-keyword">class</span> <span class="hljs-title class_">MyAnnotationApplicationContext</span> &#123;<br><br>    <span class="hljs-keyword">private</span> Map&lt;String, Object&gt; ioc = <span class="hljs-keyword">new</span> <span class="hljs-title class_">HashMap</span>&lt;&gt;();<br><br>    <span class="hljs-keyword">public</span> <span class="hljs-title function_">MyAnnotationApplicationContext</span><span class="hljs-params">(String packageName)</span> &#123;<br>        <span class="hljs-comment">// 找到包下所有的类（遍历硬盘）</span><br>        Set&lt;Class&lt;?&gt;&gt; classes = MyTools.getClasses(packageName);<br>        <span class="hljs-comment">// 遍历所有类，找到目标类（标注了@Component的类）</span><br>        Iterator&lt;Class&lt;?&gt;&gt; iterator = classes.iterator();<br>        <span class="hljs-keyword">while</span> (iterator.hasNext()) &#123;<br>            Class&lt;?&gt; aClass = iterator.next();<br>            <span class="hljs-comment">//找到目标类</span><br>            <span class="hljs-type">Component</span> <span class="hljs-variable">annotation</span> <span class="hljs-operator">=</span> aClass.getAnnotation(Component.class);<br>            <span class="hljs-keyword">if</span>(annotation != <span class="hljs-literal">null</span>)&#123;<br>                <span class="hljs-keyword">try</span> &#123;<br>                    <span class="hljs-comment">// 创建目标类对象（调无参构造）</span><br>                    Constructor&lt;?&gt; constructor = aClass.getConstructor(<span class="hljs-literal">null</span>);<br>                    <span class="hljs-type">Object</span> <span class="hljs-variable">o</span> <span class="hljs-operator">=</span> constructor.newInstance(<span class="hljs-literal">null</span>);<br>                    <span class="hljs-comment">// 获取当前类的所有属性</span><br>                    Field[] declaredFields = aClass.getDeclaredFields();<br>                    <span class="hljs-comment">// 遍历所有属性，为目标属性（标注了@Value的属性）赋值</span><br>                    <span class="hljs-keyword">for</span> (Field declaredField : declaredFields) &#123;<br>                        <span class="hljs-type">Value</span> <span class="hljs-variable">annotation1</span> <span class="hljs-operator">=</span> declaredField.getAnnotation(Value.class);<br>                        <span class="hljs-keyword">if</span>(annotation1 != <span class="hljs-literal">null</span>)&#123;<br>                            <span class="hljs-type">String</span> <span class="hljs-variable">value</span> <span class="hljs-operator">=</span> annotation1.value();<br>                            <span class="hljs-comment">// 赋值：拼接set方法名，数据类型转换，赋值</span><br>                            <span class="hljs-type">String</span> <span class="hljs-variable">fieldName</span> <span class="hljs-operator">=</span> declaredField.getName();<br>                            <span class="hljs-type">String</span> <span class="hljs-variable">methodName</span> <span class="hljs-operator">=</span> <span class="hljs-string">&quot;set&quot;</span> + fieldName.substring(<span class="hljs-number">0</span>, <span class="hljs-number">1</span>).toUpperCase() + fieldName.substring(<span class="hljs-number">1</span>);<br>                            <span class="hljs-type">Method</span> <span class="hljs-variable">declaredMethod</span> <span class="hljs-operator">=</span> aClass.getDeclaredMethod(methodName, declaredField.getType());<br>                            <span class="hljs-keyword">if</span>(declaredField.getType().equals(Integer.class))&#123;<br>                                declaredMethod.invoke(o, Integer.parseInt(value));<br>                            &#125;<br>                            <span class="hljs-keyword">if</span>(declaredField.getType().equals(String.class))&#123;<br>                                declaredMethod.invoke(o,value);<br>                            &#125;<br>                        &#125;<br>                    &#125;<br>                    <span class="hljs-comment">// 处理key</span><br>                    <span class="hljs-type">String</span> <span class="hljs-variable">value</span> <span class="hljs-operator">=</span> annotation.value();<br>                    String key;<br>                    <span class="hljs-keyword">if</span>(!value.equals(<span class="hljs-string">&quot;&quot;</span>))&#123;<br>                        key = value;<br>                    &#125; <span class="hljs-keyword">else</span> &#123;<br>                        <span class="hljs-type">String</span> <span class="hljs-variable">className</span> <span class="hljs-operator">=</span> aClass.getName();<br>                        className = className.replaceAll(packageName+<span class="hljs-string">&quot;.&quot;</span>,<span class="hljs-string">&quot;&quot;</span>);<br>                        key = className.substring(<span class="hljs-number">0</span>, <span class="hljs-number">1</span>).toLowerCase()+className.substring(<span class="hljs-number">1</span>);<br>                    &#125;<br>                    <span class="hljs-comment">//将对象注入到IoC</span><br>                    ioc.put(key, o);<br>                &#125; <span class="hljs-keyword">catch</span> (Exception e) &#123;<br>                    e.printStackTrace();<br>                &#125;<br>            &#125;<br>        &#125;<br>    &#125;<br><br>    <span class="hljs-keyword">public</span> Object <span class="hljs-title function_">getBean</span><span class="hljs-params">(String key)</span> &#123;<br>        <span class="hljs-type">Object</span> <span class="hljs-variable">o</span> <span class="hljs-operator">=</span> ioc.get(key);<br>        <span class="hljs-keyword">if</span>(o == <span class="hljs-literal">null</span>) <span class="hljs-keyword">throw</span> <span class="hljs-keyword">new</span> <span class="hljs-title class_">RuntimeException</span>(<span class="hljs-string">&quot;NoSuchBeanException&quot;</span>);<br>        <span class="hljs-keyword">return</span> o;<br>    &#125;<br>&#125;<br></code></pre></td></tr></table></figure>
+
+<blockquote>
+<p>遍历硬盘的工具类比较复杂，可以直接拿来使用</p>
+</blockquote>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br><span class="line">78</span><br><span class="line">79</span><br><span class="line">80</span><br><span class="line">81</span><br><span class="line">82</span><br><span class="line">83</span><br><span class="line">84</span><br><span class="line">85</span><br><span class="line">86</span><br><span class="line">87</span><br><span class="line">88</span><br><span class="line">89</span><br><span class="line">90</span><br><span class="line">91</span><br><span class="line">92</span><br><span class="line">93</span><br><span class="line">94</span><br><span class="line">95</span><br><span class="line">96</span><br><span class="line">97</span><br><span class="line">98</span><br><span class="line">99</span><br><span class="line">100</span><br><span class="line">101</span><br><span class="line">102</span><br><span class="line">103</span><br><span class="line">104</span><br><span class="line">105</span><br><span class="line">106</span><br><span class="line">107</span><br><span class="line">108</span><br><span class="line">109</span><br><span class="line">110</span><br><span class="line">111</span><br><span class="line">112</span><br><span class="line">113</span><br><span class="line">114</span><br><span class="line">115</span><br><span class="line">116</span><br><span class="line">117</span><br><span class="line">118</span><br><span class="line">119</span><br><span class="line">120</span><br><span class="line">121</span><br><span class="line">122</span><br><span class="line">123</span><br><span class="line">124</span><br><span class="line">125</span><br><span class="line">126</span><br><span class="line">127</span><br><span class="line">128</span><br><span class="line">129</span><br><span class="line">130</span><br><span class="line">131</span><br><span class="line">132</span><br><span class="line">133</span><br><span class="line">134</span><br><span class="line">135</span><br><span class="line">136</span><br><span class="line">137</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-keyword">package</span> com.kk.utils;<br><br><span class="hljs-keyword">import</span> java.io.File;<br><span class="hljs-keyword">import</span> java.io.FileFilter;<br><span class="hljs-keyword">import</span> java.io.IOException;<br><span class="hljs-keyword">import</span> java.net.JarURLConnection;<br><span class="hljs-keyword">import</span> java.net.URL;<br><span class="hljs-keyword">import</span> java.net.URLDecoder;<br><span class="hljs-keyword">import</span> java.util.Enumeration;<br><span class="hljs-keyword">import</span> java.util.LinkedHashSet;<br><span class="hljs-keyword">import</span> java.util.Set;<br><span class="hljs-keyword">import</span> java.util.jar.JarEntry;<br><span class="hljs-keyword">import</span> java.util.jar.JarFile;<br><br><span class="hljs-keyword">public</span> <span class="hljs-keyword">class</span> <span class="hljs-title class_">MyTools</span> &#123;<br><br>    <span class="hljs-keyword">public</span> <span class="hljs-keyword">static</span> Set&lt;Class&lt;?&gt;&gt; getClasses(String pack) &#123;<br><br>        <span class="hljs-comment">// 第一个class类的集合</span><br>        Set&lt;Class&lt;?&gt;&gt; classes = <span class="hljs-keyword">new</span> <span class="hljs-title class_">LinkedHashSet</span>&lt;&gt;();<br>        <span class="hljs-comment">// 是否循环迭代</span><br>        <span class="hljs-type">boolean</span> <span class="hljs-variable">recursive</span> <span class="hljs-operator">=</span> <span class="hljs-literal">true</span>;<br>        <span class="hljs-comment">// 获取包的名字 并进行替换</span><br>        <span class="hljs-type">String</span> <span class="hljs-variable">packageName</span> <span class="hljs-operator">=</span> pack;<br>        <span class="hljs-type">String</span> <span class="hljs-variable">packageDirName</span> <span class="hljs-operator">=</span> packageName.replace(<span class="hljs-string">&#x27;.&#x27;</span>, <span class="hljs-string">&#x27;/&#x27;</span>);<br>        <span class="hljs-comment">// 定义一个枚举的集合 并进行循环来处理这个目录下的things</span><br>        Enumeration&lt;URL&gt; dirs;<br>        <span class="hljs-keyword">try</span> &#123;<br>            dirs = Thread.currentThread().getContextClassLoader().getResources(packageDirName);<br>            <span class="hljs-comment">// 循环迭代下去</span><br>            <span class="hljs-keyword">while</span> (dirs.hasMoreElements()) &#123;<br>                <span class="hljs-comment">// 获取下一个元素</span><br>                <span class="hljs-type">URL</span> <span class="hljs-variable">url</span> <span class="hljs-operator">=</span> dirs.nextElement();<br>                <span class="hljs-comment">// 得到协议的名称</span><br>                <span class="hljs-type">String</span> <span class="hljs-variable">protocol</span> <span class="hljs-operator">=</span> url.getProtocol();<br>                <span class="hljs-comment">// 如果是以文件的形式保存在服务器上</span><br>                <span class="hljs-keyword">if</span> (<span class="hljs-string">&quot;file&quot;</span>.equals(protocol)) &#123;<br>                    <span class="hljs-comment">// 获取包的物理路径</span><br>                    <span class="hljs-type">String</span> <span class="hljs-variable">filePath</span> <span class="hljs-operator">=</span> URLDecoder.decode(url.getFile(), <span class="hljs-string">&quot;UTF-8&quot;</span>);<br>                    <span class="hljs-comment">// 以文件的方式扫描整个包下的文件 并添加到集合中</span><br>                    findClassesInPackageByFile(packageName, filePath, recursive, classes);<br>                &#125; <span class="hljs-keyword">else</span> <span class="hljs-keyword">if</span> (<span class="hljs-string">&quot;jar&quot;</span>.equals(protocol)) &#123;<br>                    <span class="hljs-comment">// 如果是jar包文件</span><br>                    <span class="hljs-comment">// 定义一个JarFile</span><br>                    System.out.println(<span class="hljs-string">&quot;jar类型的扫描&quot;</span>);<br>                    JarFile jar;<br>                    <span class="hljs-keyword">try</span> &#123;<br>                        <span class="hljs-comment">// 获取jar</span><br>                        jar = ((JarURLConnection) url.openConnection()).getJarFile();<br>                        <span class="hljs-comment">// 从此jar包 得到一个枚举类</span><br>                        Enumeration&lt;JarEntry&gt; entries = jar.entries();<br>                        findClassesInPackageByJar(packageName, entries, packageDirName, recursive, classes);<br>                    &#125; <span class="hljs-keyword">catch</span> (IOException e) &#123;<br>                        <span class="hljs-comment">// log.error(&quot;在扫描用户定义视图时从jar包获取文件出错&quot;);</span><br>                        e.printStackTrace();<br>                    &#125;<br>                &#125;<br>            &#125;<br>        &#125; <span class="hljs-keyword">catch</span> (IOException e) &#123;<br>            e.printStackTrace();<br>        &#125;<br>        <span class="hljs-keyword">return</span> classes;<br>    &#125;<br><br>    <span class="hljs-keyword">private</span> <span class="hljs-keyword">static</span> <span class="hljs-keyword">void</span> <span class="hljs-title function_">findClassesInPackageByJar</span><span class="hljs-params">(String packageName, Enumeration&lt;JarEntry&gt; entries, String packageDirName, <span class="hljs-keyword">final</span> <span class="hljs-type">boolean</span> recursive, Set&lt;Class&lt;?&gt;&gt; classes)</span> &#123;<br>        <span class="hljs-comment">// 同样的进行循环迭代</span><br>        <span class="hljs-keyword">while</span> (entries.hasMoreElements()) &#123;<br>            <span class="hljs-comment">// 获取jar里的一个实体 可以是目录 和一些jar包里的其他文件 如META-INF等文件</span><br>            <span class="hljs-type">JarEntry</span> <span class="hljs-variable">entry</span> <span class="hljs-operator">=</span> entries.nextElement();<br>            <span class="hljs-type">String</span> <span class="hljs-variable">name</span> <span class="hljs-operator">=</span> entry.getName();<br>            <span class="hljs-comment">// 如果是以/开头的</span><br>            <span class="hljs-keyword">if</span> (name.charAt(<span class="hljs-number">0</span>) == <span class="hljs-string">&#x27;/&#x27;</span>) &#123;<br>                <span class="hljs-comment">// 获取后面的字符串</span><br>                name = name.substring(<span class="hljs-number">1</span>);<br>            &#125;<br>            <span class="hljs-comment">// 如果前半部分和定义的包名相同</span><br>            <span class="hljs-keyword">if</span> (name.startsWith(packageDirName)) &#123;<br>                <span class="hljs-type">int</span> <span class="hljs-variable">idx</span> <span class="hljs-operator">=</span> name.lastIndexOf(<span class="hljs-string">&#x27;/&#x27;</span>);<br>                <span class="hljs-comment">// 如果以&quot;/&quot;结尾 是一个包</span><br>                <span class="hljs-keyword">if</span> (idx != -<span class="hljs-number">1</span>) &#123;<br>                    <span class="hljs-comment">// 获取包名 把&quot;/&quot;替换成&quot;.&quot;</span><br>                    packageName = name.substring(<span class="hljs-number">0</span>, idx).replace(<span class="hljs-string">&#x27;/&#x27;</span>, <span class="hljs-string">&#x27;.&#x27;</span>);<br>                &#125;<br>                <span class="hljs-comment">// 如果可以迭代下去 并且是一个包</span><br>                <span class="hljs-keyword">if</span> ((idx != -<span class="hljs-number">1</span>) || recursive) &#123;<br>                    <span class="hljs-comment">// 如果是一个.class文件 而且不是目录</span><br>                    <span class="hljs-keyword">if</span> (name.endsWith(<span class="hljs-string">&quot;.class&quot;</span>) &amp;&amp; !entry.isDirectory()) &#123;<br>                        <span class="hljs-comment">// 去掉后面的&quot;.class&quot; 获取真正的类名</span><br>                        <span class="hljs-type">String</span> <span class="hljs-variable">className</span> <span class="hljs-operator">=</span> name.substring(packageName.length() + <span class="hljs-number">1</span>, name.length() - <span class="hljs-number">6</span>);<br>                        <span class="hljs-keyword">try</span> &#123;<br>                            <span class="hljs-comment">// 添加到classes</span><br>                            classes.add(Class.forName(packageName + <span class="hljs-string">&#x27;.&#x27;</span> + className));<br>                        &#125; <span class="hljs-keyword">catch</span> (ClassNotFoundException e) &#123;<br>                            <span class="hljs-comment">// .error(&quot;添加用户自定义视图类错误 找不到此类的.class文件&quot;);</span><br>                            e.printStackTrace();<br>                        &#125;<br>                    &#125;<br>                &#125;<br>            &#125;<br>        &#125;<br>    &#125;<br><br>    <span class="hljs-keyword">private</span> <span class="hljs-keyword">static</span> <span class="hljs-keyword">void</span> <span class="hljs-title function_">findClassesInPackageByFile</span><span class="hljs-params">(String packageName, String packagePath, <span class="hljs-keyword">final</span> <span class="hljs-type">boolean</span> recursive, Set&lt;Class&lt;?&gt;&gt; classes)</span> &#123;<br>        <span class="hljs-comment">// 获取此包的目录 建立一个File</span><br>        <span class="hljs-type">File</span> <span class="hljs-variable">dir</span> <span class="hljs-operator">=</span> <span class="hljs-keyword">new</span> <span class="hljs-title class_">File</span>(packagePath);<br>        <span class="hljs-comment">// 如果不存在或者 也不是目录就直接返回</span><br>        <span class="hljs-keyword">if</span> (!dir.exists() || !dir.isDirectory()) &#123;<br>            <span class="hljs-comment">// log.warn(&quot;用户定义包名 &quot; + packageName + &quot; 下没有任何文件&quot;);</span><br>            <span class="hljs-keyword">return</span>;<br>        &#125;<br>        <span class="hljs-comment">// 如果存在 就获取包下的所有文件 包括目录</span><br>        File[] dirfiles = dir.listFiles(<span class="hljs-keyword">new</span> <span class="hljs-title class_">FileFilter</span>() &#123;<br>            <span class="hljs-comment">// 自定义过滤规则 如果可以循环(包含子目录) 或则是以.class结尾的文件(编译好的java类文件)</span><br>            <span class="hljs-meta">@Override</span><br>            <span class="hljs-keyword">public</span> <span class="hljs-type">boolean</span> <span class="hljs-title function_">accept</span><span class="hljs-params">(File file)</span> &#123;<br>                <span class="hljs-keyword">return</span> (recursive &amp;&amp; file.isDirectory()) || (file.getName().endsWith(<span class="hljs-string">&quot;.class&quot;</span>));<br>            &#125;<br>        &#125;);<br>        <span class="hljs-comment">// 循环所有文件</span><br>        <span class="hljs-keyword">for</span> (File file : dirfiles) &#123;<br>            <span class="hljs-comment">// 如果是目录 则继续扫描</span><br>            <span class="hljs-keyword">if</span> (file.isDirectory()) &#123;<br>                findClassesInPackageByFile(packageName + <span class="hljs-string">&quot;.&quot;</span> + file.getName(), file.getAbsolutePath(), recursive, classes);<br>            &#125; <span class="hljs-keyword">else</span> &#123;<br>                <span class="hljs-comment">// 如果是java类文件 去掉后面的.class 只留下类名</span><br>                <span class="hljs-type">String</span> <span class="hljs-variable">className</span> <span class="hljs-operator">=</span> file.getName().substring(<span class="hljs-number">0</span>, file.getName().length() - <span class="hljs-number">6</span>);<br>                <span class="hljs-keyword">try</span> &#123;<br>                    <span class="hljs-comment">// 添加到集合中去</span><br>                    classes.add(Thread.currentThread().getContextClassLoader().loadClass(packageName + <span class="hljs-string">&#x27;.&#x27;</span> + className));<br>                &#125; <span class="hljs-keyword">catch</span> (ClassNotFoundException e) &#123;<br>                    <span class="hljs-comment">// log.error(&quot;添加用户自定义视图类错误 找不到此类的.class文件&quot;);</span><br>                    e.printStackTrace();<br>                &#125;<br>            &#125;<br>        &#125;<br>    &#125;<br>&#125;<br></code></pre></td></tr></table></figure>
+
+
+                
+              </div>
+            
+            <hr/>
+            <div>
+              <div class="post-metas my-3">
+  
+    <div class="post-meta mr-3 d-flex align-items-center">
+      <i class="iconfont icon-category"></i>
+      
+
+<span class="category-chains">
+  
+  
+    
+      <span class="category-chain">
+        
+  <a href="/categories/Java/" class="category-chain-item">Java</a>
+  
+  
+
+      </span>
+    
+  
+</span>
+
+    </div>
+  
+  
+    <div class="post-meta">
+      <i class="iconfont icon-tags"></i>
+      
+        <a href="/tags/Spring/">#Spring</a>
+      
+    </div>
+  
+</div>
+
+
+              
+  
+
+  <div class="license-box my-3">
+    <div class="license-title">
+      <div>简单自定义实现IoC</div>
+      <div>http://example.com/2022/08/28/自定义IoC/</div>
+    </div>
+    <div class="license-meta">
+      
+        <div class="license-meta-item">
+          <div>作者</div>
+          <div>fkxia</div>
+        </div>
+      
+      
+        <div class="license-meta-item license-meta-date">
+          <div>发布于</div>
+          <div>2022年8月28日</div>
+        </div>
+      
+      
+      <div class="license-meta-item">
+        <div>许可协议</div>
+        <div>
+          
+            
+            
+              <a target="_blank" href="https://creativecommons.org/licenses/by/4.0/">
+              <span class="hint--top hint--rounded" aria-label="BY - 署名">
+                <i class="iconfont icon-by"></i>
+              </span>
+              </a>
+            
+          
+        </div>
+      </div>
+    </div>
+    <div class="license-icon iconfont"></div>
+  </div>
+
+
+
+              
+                <div class="post-prevnext my-3">
+                  <article class="post-prev col-6">
+                    
+                    
+                      <a href="/2022/09/04/AOP/" title="AOP">
+                        <i class="iconfont icon-arrowleft"></i>
+                        <span class="hidden-mobile">AOP</span>
+                        <span class="visible-mobile">上一篇</span>
+                      </a>
+                    
+                  </article>
+                  <article class="post-next col-6">
+                    
+                    
+                      <a href="/2022/08/21/hashmap/" title="HashMap">
+                        <span class="hidden-mobile">HashMap</span>
+                        <span class="visible-mobile">下一篇</span>
+                        <i class="iconfont icon-arrowright"></i>
+                      </a>
+                    
+                  </article>
+                </div>
+              
+            </div>
+
+            
+  <article id="comments" lazyload>
+    
+  <div id="valine"></div>
+  <script type="text/javascript">
+    Fluid.utils.loadComments('#valine', function() {
+      Fluid.utils.createScript('https://lib.baomitu.com/valine/1.4.17/Valine.min.js', function() {
+        var options = Object.assign(
+          {"appId":"fydHwpWf8lLoh5rB94P1h8ol-9Nh9j0Va","appKey":"x2r3bVLhBEER5npVNdOJbvQH","path":"window.location.pathname","placeholder":"说说你的想法......","avatar":"retro","meta":["nick","mail","link"],"requiredFields":[],"pageSize":10,"lang":"zh-CN","highlight":false,"recordIP":false,"serverURLs":"","emojiCDN":null,"emojiMaps":null,"enableQQ":false},
+          {
+            el: "#valine",
+            path: window.location.pathname
+          }
+        )
+        new Valine(options);
+        Fluid.utils.waitElementVisible('#valine .vcontent', () => {
+          var imgSelector = '#valine .vcontent img:not(.vemoji)';
+          Fluid.plugins.imageCaption(imgSelector);
+          Fluid.plugins.fancyBox(imgSelector);
+        })
+      });
+    });
+  </script>
+  <noscript>Please enable JavaScript to view the comments</noscript>
+
+
+  </article>
+
+
+          </article>
+        </div>
+      </div>
+    </div>
+
+    <div class="side-col d-none d-lg-block col-lg-2">
+      
+  <aside class="sidebar" style="margin-left: -1rem">
+    <div id="toc">
+  <p class="toc-header"><i class="iconfont icon-list"></i>&nbsp;目录</p>
+  <div class="toc-body" id="toc-body"></div>
+</div>
+
+
+
+  </aside>
+
+
+    </div>
+  </div>
+</div>
+
+
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+
+
+
+
+
+    
+
+    
+      <a id="scroll-top-button" aria-label="TOP" href="#" role="button">
+        <i class="iconfont icon-arrowup" aria-hidden="true"></i>
+      </a>
+    
+
+    
+      <div class="modal fade" id="modalSearch" tabindex="-1" role="dialog" aria-labelledby="ModalLabel"
+     aria-hidden="true">
+  <div class="modal-dialog modal-dialog-scrollable modal-lg" role="document">
+    <div class="modal-content">
+      <div class="modal-header text-center">
+        <h4 class="modal-title w-100 font-weight-bold">搜索</h4>
+        <button type="button" id="local-search-close" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body mx-3">
+        <div class="md-form mb-5">
+          <input type="text" id="local-search-input" class="form-control validate">
+          <label data-error="x" data-success="v" for="local-search-input">关键词</label>
+        </div>
+        <div class="list-group" id="local-search-result"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+    
+
+    
+  </main>
+
+  <footer>
+    <div class="footer-inner">
+  
+    <div class="footer-content">
+       <span>© 2022-2022</span> <i class="iconfont icon-love"></i> <a href="https://f-bee.github.io" target="_self" rel="nofollow noopener"><span>fkxia</span></a> 
+    </div>
+  
+  
+    <div class="statistics">
+  
+  
+
+  
+    
+      <span id="leancloud-site-pv-container" style="display: none">
+        总访问量 
+        <span id="leancloud-site-pv"></span>
+         次
+      </span>
+    
+    
+      <span id="leancloud-site-uv-container" style="display: none">
+        总访客数 
+        <span id="leancloud-site-uv"></span>
+         人
+      </span>
+    
+    
+
+  
+</div>
+
+  
+  
+  
+</div>
+
+  </footer>
+
+  <!-- Scripts -->
+  
+  <script  src="https://lib.baomitu.com/nprogress/0.2.0/nprogress.min.js" ></script>
+  <link  rel="stylesheet" href="https://lib.baomitu.com/nprogress/0.2.0/nprogress.min.css" />
+
+  <script>
+    NProgress.configure({"showSpinner":false,"trickleSpeed":100})
+    NProgress.start()
+    window.addEventListener('load', function() {
+      NProgress.done();
+    })
+  </script>
+
+
+<script  src="https://lib.baomitu.com/jquery/3.6.0/jquery.min.js" ></script>
+<script  src="https://lib.baomitu.com/twitter-bootstrap/4.6.1/js/bootstrap.min.js" ></script>
+<script  src="/js/events.js" ></script>
+<script  src="/js/plugins.js" ></script>
+
+
+  <script  src="https://lib.baomitu.com/typed.js/2.0.12/typed.min.js" ></script>
+  <script>
+    (function (window, document) {
+      var typing = Fluid.plugins.typing;
+      var subtitle = document.getElementById('subtitle');
+      if (!subtitle || !typing) {
+        return;
+      }
+      var text = subtitle.getAttribute('data-typed-text');
+      
+        typing(text);
+      
+    })(window, document);
+  </script>
+
+
+
+
+  
+    <script  src="/js/img-lazyload.js" ></script>
+  
+
+
+
+
+  
+<script>
+  Fluid.utils.createScript('https://lib.baomitu.com/tocbot/4.18.2/tocbot.min.js', function() {
+    var toc = jQuery('#toc');
+    if (toc.length === 0 || !window.tocbot) { return; }
+    var boardCtn = jQuery('#board-ctn');
+    var boardTop = boardCtn.offset().top;
+
+    window.tocbot.init({
+      tocSelector     : '#toc-body',
+      contentSelector : '.markdown-body',
+      headingSelector : CONFIG.toc.headingSelector || 'h1,h2,h3,h4,h5,h6',
+      linkClass       : 'tocbot-link',
+      activeLinkClass : 'tocbot-active-link',
+      listClass       : 'tocbot-list',
+      isCollapsedClass: 'tocbot-is-collapsed',
+      collapsibleClass: 'tocbot-is-collapsible',
+      collapseDepth   : CONFIG.toc.collapseDepth || 0,
+      scrollSmooth    : true,
+      headingsOffset  : -boardTop
+    });
+    if (toc.find('.toc-list-item').length > 0) {
+      toc.css('visibility', 'visible');
+    }
+  });
+</script>
+
+
+  <script src=https://lib.baomitu.com/clipboard.js/2.0.10/clipboard.min.js></script>
+
+  <script>Fluid.plugins.codeWidget();</script>
+
+
+  
+<script>
+  Fluid.utils.createScript('https://lib.baomitu.com/anchor-js/4.3.1/anchor.min.js', function() {
+    window.anchors.options = {
+      placement: CONFIG.anchorjs.placement,
+      visible  : CONFIG.anchorjs.visible
+    };
+    if (CONFIG.anchorjs.icon) {
+      window.anchors.options.icon = CONFIG.anchorjs.icon;
+    }
+    var el = (CONFIG.anchorjs.element || 'h1,h2,h3,h4,h5,h6').split(',');
+    var res = [];
+    for (var item of el) {
+      res.push('.markdown-body > ' + item.trim());
+    }
+    if (CONFIG.anchorjs.placement === 'left') {
+      window.anchors.options.class = 'anchorjs-link-left';
+    }
+    window.anchors.add(res.join(', '));
+  });
+</script>
+
+
+  
+<script>
+  Fluid.utils.createScript('https://lib.baomitu.com/fancybox/3.5.7/jquery.fancybox.min.js', function() {
+    Fluid.plugins.fancyBox();
+  });
+</script>
+
+
+  <script>Fluid.plugins.imageCaption();</script>
+
+  <script defer src="/js/leancloud.js" ></script>
+
+  <script  src="/js/local-search.js" ></script>
+
+
+
+
+
+<!-- 主题的启动项，将它保持在最底部 -->
+<!-- the boot of the theme, keep it at the bottom -->
+<script  src="/js/boot.js" ></script>
+
+
+  
+
+  <noscript>
+    <div class="noscript-warning">博客在允许 JavaScript 运行的环境下浏览效果更佳</div>
+  </noscript>
+</body>
+</html>
